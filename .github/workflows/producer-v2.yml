@@ -13,7 +13,7 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
-    uses: zhyu1302-source/EvidenceFlow3D-ProducerV2/.github/workflows/trusted-producer-v2.yml@ba0f8819113d6f59f40107aa463e118d78e23909
+    uses: zhyu1302-source/EvidenceFlow3D-ProducerV2/.github/workflows/trusted-producer-v2.yml@e0bda09227cfa9ac0c76284f3d386922c44646ba
     with:
       source_sha: ${{ github.sha }}
     secrets:
