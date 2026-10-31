@@ -1,0 +1,20 @@
+name: Producer V2 preregistered dispatch
+'on':
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: producer-v2-run001
+  cancel-in-progress: false
+jobs:
+  trusted:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: zhyu1302-source/EvidenceFlow3D-ProducerV2/.github/workflows/trusted-producer-v2.yml@ba0f8819113d6f59f40107aa463e118d78e23909
+    with:
+      source_sha: ${{ github.sha }}
+    secrets:
+      EVIDENCEFLOW3D_AGE_IDENTITY: ${{ secrets.EVIDENCEFLOW3D_AGE_IDENTITY }}

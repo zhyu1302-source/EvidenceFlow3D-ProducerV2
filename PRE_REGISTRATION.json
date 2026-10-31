@@ -1,0 +1,43 @@
+{
+  "age_public_recipient": "age1tm04ljmlqv9e6ep4cx7wz6w44ce2zrlqfevrj9yzl00njvm90f2sj7jrgk",
+  "bundles": [
+    {
+      "age_recipient": "age1tm04ljmlqv9e6ep4cx7wz6w44ce2zrlqfevrj9yzl00njvm90f2sj7jrgk",
+      "ciphertext_SHA256": "9c0b30fcd2b89644e495b7fd9a6dbfadd25956be15f94caec1778b8617f8a6b2",
+      "ciphertext_bytes": 62661572,
+      "ciphertext_filename": "producer_code_bundle.tar.zst.age",
+      "plaintext_archive_SHA256": "1b48d7e8fe1f18d6b1edf7a994c2c72b3ece3f54715882dcc722fce4d4b66fa9",
+      "plaintext_archive_bytes": 62646092,
+      "role": "producer_code_bundle",
+      "split_required": false
+    },
+    {
+      "age_recipient": "age1tm04ljmlqv9e6ep4cx7wz6w44ce2zrlqfevrj9yzl00njvm90f2sj7jrgk",
+      "ciphertext_SHA256": "5eeda129de399d8a8979ecf12c9bb659c1e5f8357ff0916e30832dc67c7e34ae",
+      "ciphertext_bytes": 189565533,
+      "ciphertext_filename": "producer_input_bundle.tar.zst.age",
+      "plaintext_archive_SHA256": "97d86f33d044b810f72a70b0173ff4d7d1435a8cccccb6dd5905ced3c36bc691",
+      "plaintext_archive_bytes": 189519077,
+      "role": "producer_input_bundle",
+      "split_required": false
+    }
+  ],
+  "code_manifest_SHA256": "e5133e8cbd737ad56ce6fb929d3c68f0d82bb7692b08359c8cdeeafac87a39d0",
+  "config_SHA256": "957ea1dada9146099d461d7f8bad604fc3c307165b630da90c12f8183c869752",
+  "formal_execution_limit": 1,
+  "model_checkpoint_GPU_counts_required_zero": true,
+  "old_matching_membership_not_material": true,
+  "old_target_membership_not_material": true,
+  "output_subject_name": "ProducerV2-output.tar.zst",
+  "parent_manifest_SHA256": "c5fb08dc303fefcf1a4e63b0d212b1c5262c752eec59d87097664056b454e9c1",
+  "pre_registered_before_any_formal_selection": true,
+  "public_workflow_SHA256": "daf79f9f8eaf7f32bb656225d29baffa35bf35ab4b486491e6eab20de9da1356",
+  "release_tag": "producer-v2-run001",
+  "repository": "zhyu1302-source/EvidenceFlow3D-ProducerV2",
+  "repository_numeric_ID": 1440507862,
+  "requirements_lock_SHA256": "5d2ad078186d6db8d0d6dd2d9fd6e8f66260b580fee25560fd60c55bc5aa4b9e",
+  "research_predicate_schema_SHA256": "27495087007b03e39d6b89ab9fba2e71463b590196b74ae6c7f8898c7dc1039a",
+  "trusted_workflow_commit": "ba0f8819113d6f59f40107aa463e118d78e23909",
+  "trusted_workflow_path": ".github/workflows/trusted-producer-v2.yml",
+  "version": "PROSPECTIVE_TARGET_SELECTION_V2_RUN001"
+}
