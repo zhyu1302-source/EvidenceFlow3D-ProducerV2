@@ -1,0 +1,11 @@
+*
+!/.github/
+!/.github/**
+!/policy/
+!/policy/**
+!/schemas/
+!/schemas/**
+!/README.md
+!/PUBLIC_REPOSITORY_DISCLOSURE.md
+!/PRE_REGISTRATION.json
+!/.gitignore

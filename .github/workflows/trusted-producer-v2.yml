@@ -1,0 +1,166 @@
+name: Trusted encrypted Producer V2
+'on':
+  workflow_call:
+    inputs:
+      source_sha:
+        type: string
+        required: true
+    secrets:
+      EVIDENCEFLOW3D_AGE_IDENTITY:
+        required: true
+permissions:
+  contents: read
+jobs:
+  producer:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == '1' && github.repository_id == '1440507862' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout exact preregistration commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify fixed execution identity and obtain encrypted inputs
+        env:
+          AGE_IDENTITY: ${{ secrets.EVIDENCEFLOW3D_AGE_IDENTITY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = 'zhyu1302-source/EvidenceFlow3D-ProducerV2'
+          test "$GITHUB_REPOSITORY_ID" = '1440507862'
+          test "$RUNNER_ENVIRONMENT" = 'github-hosted'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          test "$(git rev-parse HEAD)" = '${{ inputs.source_sha }}'
+          mkdir -p "$RUNNER_TEMP/secure/code" "$RUNNER_TEMP/secure/input" "$RUNNER_TEMP/encrypted"
+          printf '%s\n' "$AGE_IDENTITY" > "$RUNNER_TEMP/secure/identity.agekey"
+          curl -fsSL 'https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz' -o "$RUNNER_TEMP/age.tar.gz"
+          printf '%s  %s\n' 'cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10' "$RUNNER_TEMP/age.tar.gz" | sha256sum --check --status
+          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP"
+          gh release download producer-v2-run001 --repo "$GITHUB_REPOSITORY" --pattern '*.age' --dir "$RUNNER_TEMP/encrypted"
+          for role in producer_code_bundle producer_input_bundle; do
+            name="$role.tar.zst.age"
+            cipher=$(jq -r --arg role "$role" '.bundles[]|select(.role==$role)|.ciphertext_SHA256' PRE_REGISTRATION.json)
+            plain=$(jq -r --arg role "$role" '.bundles[]|select(.role==$role)|.plaintext_archive_SHA256' PRE_REGISTRATION.json)
+            printf '%s  %s\n' "$cipher" "$RUNNER_TEMP/encrypted/$name" | sha256sum --check --status
+            "$RUNNER_TEMP/age/age" -d -i "$RUNNER_TEMP/secure/identity.agekey" -o "$RUNNER_TEMP/secure/$role.tar.zst" "$RUNNER_TEMP/encrypted/$name"
+            printf '%s  %s\n' "$plain" "$RUNNER_TEMP/secure/$role.tar.zst" | sha256sum --check --status
+          done
+          tar --zstd -xf "$RUNNER_TEMP/secure/producer_code_bundle.tar.zst" -C "$RUNNER_TEMP/secure/code"
+          tar --zstd -xf "$RUNNER_TEMP/secure/producer_input_bundle.tar.zst" -C "$RUNNER_TEMP/secure/input"
+          printf '%s  %s\n' "$(jq -r .code_manifest_SHA256 PRE_REGISTRATION.json)" "$RUNNER_TEMP/secure/code/PRODUCER_V2_CODE_MANIFEST.json" | sha256sum --check --status
+          printf '%s  %s\n' "$(jq -r .config_SHA256 PRE_REGISTRATION.json)" "$RUNNER_TEMP/secure/code/PRODUCER_V2_CONFIG.json" | sha256sum --check --status
+          printf '%s  %s\n' "$(jq -r .parent_manifest_SHA256 PRE_REGISTRATION.json)" "$RUNNER_TEMP/secure/input/PRODUCER_V2_PARENT_MANIFEST.json" | sha256sum --check --status
+      - name: Install exact Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.11.14'
+          architecture: x64
+      - name: Install hash-locked offline CPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --no-index --find-links "$RUNNER_TEMP/secure/code/wheels" --require-hashes -r "$RUNNER_TEMP/secure/code/requirements.lock" > "$RUNNER_TEMP/secure/dependencies.log" 2>&1 || { echo 'Dependency verification failed; no producer execution'; exit 1; }
+      - name: Verify all parent and code identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B "$RUNNER_TEMP/secure/code/prospective_verify_inputs.py" --input "$RUNNER_TEMP/secure/input" --code "$RUNNER_TEMP/secure/code" --preregistration "$GITHUB_WORKSPACE/PRE_REGISTRATION.json" > "$RUNNER_TEMP/secure/preflight.log" 2>&1 || { echo 'Parent/code verification failed; no producer execution'; exit 1; }
+      - name: Synthetic deterministic unit fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/secure/code"
+          python -B -m unittest prospective_v2_synthetic_tests > "$RUNNER_TEMP/secure/fixtures.log" 2>&1 || { echo 'Synthetic fixtures failed; no producer execution'; exit 1; }
+      - name: Execute the sole prospective CPU producer
+        id: produce
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e "$RUNNER_TEMP/secure/PRODUCER_INVOKED"
+          printf '%s:%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/secure/PRODUCER_INVOKED"
+          python -B "$RUNNER_TEMP/secure/code/prospective_producer_v2.py" --input "$RUNNER_TEMP/secure/input" --code "$RUNNER_TEMP/secure/code" --output "$RUNNER_TEMP/secure/results" > "$RUNNER_TEMP/secure/producer.log" 2>&1 || { echo 'Producer failed; outputs not attested'; exit 1; }
+      - name: Package actual new outputs and custom research predicate
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B "$RUNNER_TEMP/secure/code/prospective_archive_and_predicate.py" --results "$RUNNER_TEMP/secure/results" --input "$RUNNER_TEMP/secure/input" --code "$RUNNER_TEMP/secure/code" --preregistration "$GITHUB_WORKSPACE/PRE_REGISTRATION.json" --archive "$RUNNER_TEMP/secure/ProducerV2-output.tar.zst" --predicate "$RUNNER_TEMP/secure/research-predicate.json" > "$RUNNER_TEMP/secure/package.log" 2>&1 || { echo 'Packaging failed; no attestations'; exit 1; }
+      - name: Attest default SLSA build provenance
+        id: slsa
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-name: ProducerV2-output.tar.zst
+          subject-digest: ${{ steps.package.outputs.digest }}
+      - name: Attest custom research provenance for the same plaintext subject
+        id: research
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-name: ProducerV2-output.tar.zst
+          subject-digest: ${{ steps.package.outputs.digest }}
+          predicate-type: https://github.com/zhyu1302-source/EvidenceFlow3D-ProducerV2/attestations/evidenceflow3d-target-selection/v2
+          predicate-path: ${{ steps.package.outputs.predicate }}
+      - name: Encrypt outputs and nonpublic execution logs
+        shell: bash
+        run: |
+          set -euo pipefail
+          recipient=$(jq -r .age_public_recipient PRE_REGISTRATION.json)
+          "$RUNNER_TEMP/age/age" -r "$recipient" -o "$RUNNER_TEMP/encrypted/ProducerV2-output.tar.zst.age" "$RUNNER_TEMP/secure/ProducerV2-output.tar.zst"
+          tar --zstd -cf "$RUNNER_TEMP/secure/execution-logs.tar.zst" -C "$RUNNER_TEMP/secure" dependencies.log preflight.log fixtures.log producer.log package.log
+          "$RUNNER_TEMP/age/age" -r "$recipient" -o "$RUNNER_TEMP/encrypted/execution-logs.tar.zst.age" "$RUNNER_TEMP/secure/execution-logs.tar.zst"
+          printf '%s  %s\n' '${{ steps.package.outputs.digest }}' 'plaintext subject' > "$RUNNER_TEMP/encrypted/SUBJECT_DIGEST.txt"
+          sha256sum "$RUNNER_TEMP/encrypted/ProducerV2-output.tar.zst.age" > "$RUNNER_TEMP/encrypted/ENCRYPTED_OUTPUT_SHA256.txt"
+      - name: Upload ciphertext outputs only
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ProducerV2-encrypted-results
+          path: |
+            ${{ runner.temp }}/encrypted/ProducerV2-output.tar.zst.age
+            ${{ runner.temp }}/encrypted/execution-logs.tar.zst.age
+            ${{ runner.temp }}/encrypted/SUBJECT_DIGEST.txt
+            ${{ runner.temp }}/encrypted/ENCRYPTED_OUTPUT_SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preserve failures as ciphertext only, excluding private identity
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -x "$RUNNER_TEMP/age/age" ] && [ -f PRE_REGISTRATION.json ]; then
+            items=()
+            for n in dependencies.log preflight.log fixtures.log producer.log package.log results; do
+              if [ -e "$RUNNER_TEMP/secure/$n" ]; then items+=("$n"); fi
+            done
+            if [ "${#items[@]}" -gt 0 ]; then
+              mkdir -p "$RUNNER_TEMP/encrypted"
+              tar --zstd -cf "$RUNNER_TEMP/failure-logs.tar.zst" -C "$RUNNER_TEMP/secure" "${items[@]}"
+              "$RUNNER_TEMP/age/age" -r "$(jq -r .age_public_recipient PRE_REGISTRATION.json)" -o "$RUNNER_TEMP/encrypted/failure-logs.tar.zst.age" "$RUNNER_TEMP/failure-logs.tar.zst"
+            fi
+          fi
+      - name: Upload failure ciphertext when present
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ProducerV2-encrypted-failure-records
+          path: ${{ runner.temp }}/encrypted/failure-logs.tar.zst.age
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Clean ephemeral plaintext and private identity
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$RUNNER_TEMP/secure" in /home/runner/work/_temp/secure) rm -rf -- "$RUNNER_TEMP/secure" ;; *) echo 'Hosted runner will reclaim temporary files';; esac

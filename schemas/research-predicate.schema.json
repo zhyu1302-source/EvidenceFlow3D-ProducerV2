@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "required": [
+    "version",
+    "producer_code_SHA256",
+    "config_SHA256",
+    "parent_manifest_SHA256",
+    "source_commit",
+    "plaintext_archive_SHA256",
+    "output_query_count",
+    "output_matched_pair_count"
+  ],
+  "type": "object"
+}

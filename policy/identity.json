@@ -1,0 +1,10 @@
+{
+  "SHAM_authorized": false,
+  "expected_signer_workflow": "zhyu1302-source/EvidenceFlow3D-ProducerV2/.github/workflows/trusted-producer-v2.yml",
+  "old_historical_trust": "D",
+  "only_runner": "github-hosted ubuntu-24.04",
+  "only_trigger": "caller workflow_dispatch, reusable workflow_call",
+  "predicate_type": "https://github.com/zhyu1302-source/EvidenceFlow3D-ProducerV2/attestations/evidenceflow3d-target-selection/v2",
+  "repository": "zhyu1302-source/EvidenceFlow3D-ProducerV2",
+  "repository_numeric_ID": 1440507862
+}
