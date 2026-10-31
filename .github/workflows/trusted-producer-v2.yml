@@ -5,6 +5,10 @@ name: Trusted encrypted Producer V2
       source_sha:
         type: string
         required: true
+      expected_execution_sha:
+        type: string
+        required: false
+        default: ''
     secrets:
       EVIDENCEFLOW3D_AGE_IDENTITY:
         required: true
@@ -12,7 +16,15 @@ permissions:
   contents: read
 jobs:
   producer:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == '1' && github.repository_id == '1440507862' }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          github.run_attempt == '1' &&
+          github.repository_id == '1440507862' &&
+          (github.ref == 'refs/heads/main' ||
+           (github.repository == 'zhyu1302-source/EvidenceFlow3D-ProducerV2' &&
+            github.ref == 'refs/heads/research/n50-002-producer-exec-v1' &&
+            inputs.expected_execution_sha == github.sha &&
+            inputs.source_sha == github.sha)) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     permissions:
@@ -27,6 +39,65 @@ jobs:
       MKL_NUM_THREADS: '1'
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Exact-ref execution authorization gate
+        env:
+          EXPECTED_EXECUTION_SHA: ${{ inputs.expected_execution_sha }}
+          CHECKOUT_SOURCE_SHA: ${{ inputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'IDENTITY_GATE'
+          const crypto = require('node:crypto');
+          const {execFileSync} = require('node:child_process');
+          const env = process.env;
+          function check(ok, what) { if (!ok) throw new Error('Execution identity rejected: ' + what); }
+          const expected = {"authorization_version":"N50_002_EXACT_REF_EXECUTION_V1","source_pr":1,"source_pr_head":"63d88130516aff1b283853fcfccf7cff99a02c42","canonical_prereg_git_blob":"c4f68dec68634948e953938bbccc73ed2484997d","canonical_prereg_raw_sha256":"3359a805242a9e29f6bc1a5f694764b6474d354330a2a2c2c23410037f1b418f","release_tag":"producer-v2-n50-002-run001","dispatch_limit":1,"independent_human_review":"UNAVAILABLE","user_authorized_research_exception":true,"repository":"zhyu1302-source/EvidenceFlow3D-ProducerV2","repository_id":"1440507862","execution_ref":"refs/heads/research/n50-002-producer-exec-v1","execution_commit_binding":"EXTERNALLY_FROZEN_NEW_RESEARCH_BRANCH_HEAD_SUPPLIED_AS_EXPECTED_EXECUTION_SHA","ciphertext_sha256":{"producer_code_bundle":"e89c54eee577abb0b77db61bfac217fbc6ccf576075d632424f7d3d101ec1d73","producer_input_bundle":"b1aeb6190d027121cd12b2c67266e6d35a6b2f630db4a44a323c73f9fb77fe6c"}};
+          function api(path) {
+            return JSON.parse(execFileSync('gh', ['api', 'repos/' + expected.repository + '/' + path], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}));
+          }
+          function content(path, ref) {
+            const record = api('contents/' + path + '?ref=' + ref);
+            check(record.encoding === 'base64' && typeof record.content === 'string', 'content encoding');
+            const bytes = Buffer.from(record.content, 'base64');
+            const blob = crypto.createHash('sha1').update(Buffer.concat([Buffer.from('blob ' + bytes.length + '\0'), bytes])).digest('hex');
+            check(blob === record.sha, 'Git blob bytes');
+            return {record, bytes, sha256: crypto.createHash('sha256').update(bytes).digest('hex')};
+          }
+          check(env.GITHUB_EVENT_NAME === 'workflow_dispatch', 'event');
+          check(env.GITHUB_REPOSITORY === expected.repository, 'repository');
+          check(env.GITHUB_REPOSITORY_ID === expected.repository_id, 'repository id');
+          check(env.GITHUB_RUN_ATTEMPT === '1', 'attempt');
+          if (env.GITHUB_REF !== 'refs/heads/main') {
+            check(env.GITHUB_REF === expected.execution_ref, 'exact research ref');
+            check(/^[0-9a-f]{40}$/.test(env.EXPECTED_EXECUTION_SHA || ''), 'external frozen execution SHA required');
+            check(env.GITHUB_SHA === env.EXPECTED_EXECUTION_SHA, 'external frozen execution SHA');
+            check(env.CHECKOUT_SOURCE_SHA === env.GITHUB_SHA, 'checkout source SHA');
+            const remote = api('git/ref/heads/' + expected.execution_ref.slice('refs/heads/'.length));
+            check(remote.object.sha === env.EXPECTED_EXECUTION_SHA, 'remote branch identity');
+            const commit = api('git/commits/' + env.GITHUB_SHA);
+            check(commit.parents.length === 1 && commit.parents[0].sha === expected.source_pr_head, 'exact single parent');
+            const pr = api('pulls/' + expected.source_pr);
+            check(pr.state === 'open' && !pr.merged_at && pr.head.sha === expected.source_pr_head, 'source PR identity');
+            const authorization = content('EXECUTION_AUTHORIZATION.json', env.GITHUB_SHA);
+            check(authorization.sha256 === '773f30f5ead56653068cd2aa194f6c62850747c07310c88c661ab8a73aef44e5', 'authorization raw SHA256');
+            check(JSON.stringify(JSON.parse(authorization.bytes.toString('utf8'))) === JSON.stringify(expected), 'authorization fields');
+            const current = content('PRE_REGISTRATION.json', env.GITHUB_SHA);
+            const original = content('PRE_REGISTRATION.json', expected.source_pr_head);
+            for (const item of [current, original]) {
+              check(item.record.sha === expected.canonical_prereg_git_blob, 'canonical prereg Git blob');
+              check(item.sha256 === expected.canonical_prereg_raw_sha256, 'canonical prereg raw SHA256');
+            }
+            const prereg = JSON.parse(current.bytes.toString('utf8'));
+            check(prereg.release_tag === expected.release_tag, 'release tag');
+            for (const [role, hash] of Object.entries(expected.ciphertext_sha256)) {
+              const matches = prereg.bundles.filter(x => x.role === role);
+              check(matches.length === 1 && matches[0].ciphertext_SHA256 === hash, 'ciphertext hash ' + role);
+            }
+            console.log('Exact-ref research identity accepted before checkout, decrypt, download or Python execution.');
+          } else {
+            console.log('Original main execution path retained.');
+          }
+          IDENTITY_GATE
       - name: Checkout exact preregistration commit
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:

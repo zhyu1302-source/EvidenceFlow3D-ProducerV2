@@ -1,6 +1,12 @@
 name: Producer V2 preregistered dispatch
 'on':
   workflow_dispatch:
+    inputs:
+      expected_execution_sha:
+        description: Frozen research execution commit SHA; required for the exact research branch
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -13,8 +19,9 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
-    uses: zhyu1302-source/EvidenceFlow3D-ProducerV2/.github/workflows/trusted-producer-v2.yml@e0bda09227cfa9ac0c76284f3d386922c44646ba
+    uses: ./.github/workflows/trusted-producer-v2.yml
     with:
       source_sha: ${{ github.sha }}
+      expected_execution_sha: ${{ inputs.expected_execution_sha }}
     secrets:
       EVIDENCEFLOW3D_AGE_IDENTITY: ${{ secrets.EVIDENCEFLOW3D_AGE_IDENTITY }}

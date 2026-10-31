@@ -1,0 +1,19 @@
+{
+  "authorization_version": "N50_002_EXACT_REF_EXECUTION_V1",
+  "source_pr": 1,
+  "source_pr_head": "63d88130516aff1b283853fcfccf7cff99a02c42",
+  "canonical_prereg_git_blob": "c4f68dec68634948e953938bbccc73ed2484997d",
+  "canonical_prereg_raw_sha256": "3359a805242a9e29f6bc1a5f694764b6474d354330a2a2c2c23410037f1b418f",
+  "release_tag": "producer-v2-n50-002-run001",
+  "dispatch_limit": 1,
+  "independent_human_review": "UNAVAILABLE",
+  "user_authorized_research_exception": true,
+  "repository": "zhyu1302-source/EvidenceFlow3D-ProducerV2",
+  "repository_id": "1440507862",
+  "execution_ref": "refs/heads/research/n50-002-producer-exec-v1",
+  "execution_commit_binding": "EXTERNALLY_FROZEN_NEW_RESEARCH_BRANCH_HEAD_SUPPLIED_AS_EXPECTED_EXECUTION_SHA",
+  "ciphertext_sha256": {
+    "producer_code_bundle": "e89c54eee577abb0b77db61bfac217fbc6ccf576075d632424f7d3d101ec1d73",
+    "producer_input_bundle": "b1aeb6190d027121cd12b2c67266e6d35a6b2f630db4a44a323c73f9fb77fe6c"
+  }
+}
