@@ -50,7 +50,8 @@ jobs:
           curl -fsSL 'https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz' -o "$RUNNER_TEMP/age.tar.gz"
           printf '%s  %s\n' 'cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10' "$RUNNER_TEMP/age.tar.gz" | sha256sum --check --status
           tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP"
-          gh release download producer-v2-run001 --repo "$GITHUB_REPOSITORY" --pattern '*.age' --dir "$RUNNER_TEMP/encrypted"
+          release_tag=$(jq -er .release_tag PRE_REGISTRATION.json)
+          gh release download "$release_tag" --repo "$GITHUB_REPOSITORY" --pattern '*.age' --dir "$RUNNER_TEMP/encrypted"
           for role in producer_code_bundle producer_input_bundle; do
             name="$role.tar.zst.age"
             cipher=$(jq -r --arg role "$role" '.bundles[]|select(.role==$role)|.ciphertext_SHA256' PRE_REGISTRATION.json)
