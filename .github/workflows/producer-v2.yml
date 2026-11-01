@@ -1,16 +1,16 @@
-name: Producer V2 preregistered dispatch
+name: n50_003 independent Producer V2 preregistered dispatch
 'on':
   workflow_dispatch:
     inputs:
       expected_execution_sha:
-        description: Frozen research execution commit SHA; required for the exact research branch
+        description: Frozen n50_003 execution SHA; supplied only after separate publication/execution authorization
         type: string
         required: false
         default: ''
 permissions:
   contents: read
 concurrency:
-  group: producer-v2-run001
+  group: producer-v2-n50-003-run001
   cancel-in-progress: false
 jobs:
   trusted:

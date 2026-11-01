@@ -1,19 +1,72 @@
 {
-  "authorization_version": "N50_002_EXACT_REF_EXECUTION_V1",
-  "source_pr": 1,
-  "source_pr_head": "63d88130516aff1b283853fcfccf7cff99a02c42",
-  "canonical_prereg_git_blob": "c4f68dec68634948e953938bbccc73ed2484997d",
-  "canonical_prereg_raw_sha256": "3359a805242a9e29f6bc1a5f694764b6474d354330a2a2c2c23410037f1b418f",
-  "release_tag": "producer-v2-n50-002-run001",
+  "CAPTURE_ORIGIN": "LOCAL_SPARD3D_FORMAL_NATIVE_ONLY",
+  "MODEL_CAPTURE_ATTESTED_BY_PRODUCER_WORKFLOW": "NO",
+  "MODEL_CAPTURE_GITHUB_HOSTED": "NO",
+  "authority_scope": "CANDIDATE_IDENTITY_BINDING_ONLY; separate user authorization required before remote publication/execution; no n50_002 waiver reused",
+  "authorization_version": "N50_003_EXACT_REF_EXECUTION_CANDIDATE_V1",
+  "base_successful_run_id": 41206119906,
+  "canonical_prereg_git_blob": "ca202a2e1f914f37a9c38e87c6565152833bac83",
+  "canonical_prereg_raw_sha256": "0d3a1e605477d257b4a2dea90e2abb65c8d4e9a058332b37182231323d377879",
+  "canonical_preregistration_path": "N50_003_PRE_REGISTRATION.json",
+  "capture_manifest_hashes": {
+    "CSR_SHA256": {
+      "ABSENT": "f1958f3e38bf1e6c69db41a12c0cdeb5d4c559cc544210ccc07529513a5f9160",
+      "FULL_LEFT": "e394bed06c10208e8fddb7c4c878de4e3f74687f5a30e36079c57e4cad28accc"
+    },
+    "ROI_SHA256": {
+      "body_ROI": "8b1fe31759cdaef55ab93d9f777993740cd4f21f6b2994298a9f83ad5348fd34",
+      "target_ROI": "99e42734753473392488bfa2648e296efd8081cbb0e42926b6d255f916d6267f"
+    },
+    "camera_contract_SHA256": "4c9b4eba58d9e27637ec6714ac5a6f8a16d5eb86f8eb13b64dd1cf45c0039bd0",
+    "camera_mapping_provenance_SHA256": "ca766aa53b030805fc6eb12ed93e646b02ee111f7060be8f3b8ffad980c26188",
+    "formal_pair_manifest_raw_SHA256": "0dd3db5b0f4e0398d9baed45122b08c63e6a9995d3f02198b6f4af9c35f476df",
+    "geometry_provenance_SHA256": {
+      "ABSENT": "64f6060c348292c8f5ae2b080a2aef2120e22c866754fa99a0670705028dfe78",
+      "FULL_LEFT": "64f6060c348292c8f5ae2b080a2aef2120e22c866754fa99a0670705028dfe78"
+    },
+    "helper_contract_SHA256": {
+      "ABSENT": "34d05153a4ae7cfd5b85db5d7a09db5a6e878cf05b19077a2baafb9fa67d420b",
+      "FULL_LEFT": "34d05153a4ae7cfd5b85db5d7a09db5a6e878cf05b19077a2baafb9fa67d420b"
+    },
+    "helper_resource_SHA256": "1f4be37efc604d28d55a1a78c2aabefeeab7e63149f541aa45f9dd858ee35bb9",
+    "noise_manifest_raw_SHA256": "a719d6668128935f918af23d9547a20d140da24127508dc69faa23f19143ead6",
+    "pair_identity_manifest_raw_SHA256": "555386e74c17be5b1f1cda31a198ff8c0ab450f24c3379b45ec0e6b0cfa059fe",
+    "query_positions_raw_SHA256": "6c5500286b203884be0208e8d572ccf220d5d66b2bfed4c117220beb4bb68405",
+    "session_manifest_raw_SHA256": {
+      "ABSENT": "06446673893f716273ce4b8af60bf29970137ba83bd1b48466d74b9f9cfc1cb8",
+      "FULL_LEFT": "f196e5ddee2cc2cfb05686b8ff284896a31990989d558d901029e221fb471dce"
+    }
+  },
+  "ciphertext_sha256": {
+    "producer_code_bundle": "f0833d13e64a5d7edcb6183fe96910bc129127e5c7ff77099916af4809ff650d",
+    "producer_input_bundle": "0a7063e67317b4d5ad235a6d0d526dee773a73cc810beca5a19d1ce4cfc28aa6"
+  },
+  "ciphertext_sizes": {
+    "producer_code_bundle": 62680382,
+    "producer_input_bundle": 641112576
+  },
+  "code_manifest_SHA256": "99e8b430b1d370123540fc95e350f6c16fcaf2191c17cf98ca81449783c3f16c",
+  "config_SHA256": "957ea1dada9146099d461d7f8bad604fc3c307165b630da90c12f8183c869752",
+  "custom_predicate_schema_SHA256": "fe368e1a80be4017a36b7bda3a7ec4a8915eda290e1343da3282ba6b0946cb72",
   "dispatch_limit": 1,
-  "independent_human_review": "UNAVAILABLE",
-  "user_authorized_research_exception": true,
+  "execution_commit_binding": "EXTERNALLY_FROZEN_EXECUTION_SHA; expected_execution_sha=github.sha=source_sha",
+  "execution_ref": "refs/heads/research/n50-003-producer-exec-v1",
+  "formal_Producer_execution_authorized": false,
+  "formal_pair_ID": "n50_003_native_v1_1_6c49c5bd-0845-47b0-acde-89714ff285e5",
+  "fresh_capture_session_ID": "n50_003_native_v1_1_6c49c5bd-0845-47b0-acde-89714ff285e5",
+  "independent_human_review": "NOT_OBTAINED; no APPROVED claim",
+  "parent_manifest_SHA256": "3501f1880e7629318604793ba7694482d406e1ef82c039ee56014ec82645fc79",
+  "plaintext_archive_sha256": {
+    "producer_code_bundle": "a786a555254a329745504be923555aa6bb2863f8a705b76e88196f62bba35094",
+    "producer_input_bundle": "4e8555605866f6b5c77dd43ebf037e838f261e50dd632276e288c07674f3e78e"
+  },
+  "preparation_authorized": true,
+  "release_tag": "producer-v2-n50-003-run001",
+  "remote_publication_authorized": false,
   "repository": "zhyu1302-source/EvidenceFlow3D-ProducerV2",
   "repository_id": "1440507862",
-  "execution_ref": "refs/heads/research/n50-002-producer-exec-v1",
-  "execution_commit_binding": "EXTERNALLY_FROZEN_NEW_RESEARCH_BRANCH_HEAD_SUPPLIED_AS_EXPECTED_EXECUTION_SHA",
-  "ciphertext_sha256": {
-    "producer_code_bundle": "e89c54eee577abb0b77db61bfac217fbc6ccf576075d632424f7d3d101ec1d73",
-    "producer_input_bundle": "b1aeb6190d027121cd12b2c67266e6d35a6b2f630db4a44a323c73f9fb77fe6c"
-  }
+  "required_parent_execution_commit": "0405f4c185997df818873427f82bc9eb76186d9b",
+  "requirements_lock_SHA256": "5d2ad078186d6db8d0d6dd2d9fd6e8f66260b580fee25560fd60c55bc5aa4b9e",
+  "source_sample_id": "n50_003",
+  "user_authorized_research_exception": false
 }
